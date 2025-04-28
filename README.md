@@ -30,8 +30,10 @@ Usage Instructions
 - Insert a USB flash drive and confirm it appears as D:\.
 - Open PowerShell as Administrator.
 - Set execution policy to allow running the script:
+  
 Set-ExecutionPolicy Bypass -Scope Process -Force
 - Run the script:
+  
 .\BitLocker_Cryptographic_Erase_NIST800-88.ps1
 
 The script will:
@@ -49,7 +51,7 @@ Important Warnings
 
 ⚠️ Ensure that all important data is backed up elsewhere before running.
 
-⚠️ After reboot, drives will be encrypted and locked with unknown keys — data will be lost forever.
+⚠️ After reboot, drives will be encrypted and locked with unknown keys and data will be lost forever.
 
 License
 

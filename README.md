@@ -30,9 +30,9 @@ Usage Instructions
 - Insert a USB flash drive and confirm it appears as D:\.
 - Open PowerShell as Administrator.
 - Set execution policy to allow running the script:
-Set-ExecutionPolicy Bypass -Scope Process -Force
+  Set-ExecutionPolicy Bypass -Scope Process -Force
 - Run the script:
-.\BitLocker_Cryptographic_Erase_NIST800-88.ps1
+  .\BitLocker_Cryptographic_Erase_NIST800-88.ps1
 
 The script will:
 

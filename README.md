@@ -46,7 +46,9 @@ The script will:
 Important Warnings
 
 ⚠️ This script makes data recovery impossible.
+
 ⚠️ Ensure that all important data is backed up elsewhere before running.
+
 ⚠️ After reboot, drives will be encrypted and locked with unknown keys — data will be lost forever.
 
 License
@@ -56,4 +58,5 @@ This project is licensed under the MIT License.
 Credits
 
 Created and maintained by Abdullah Kareem @CyberKareem.
+
 Designed for secure enterprise-grade media sanitization following best practices.

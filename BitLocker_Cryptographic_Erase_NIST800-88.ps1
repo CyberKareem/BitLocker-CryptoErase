@@ -3,7 +3,6 @@
 # ensuring data is permanently deleted and unrecoverable.
 
 # Requires -RunAsAdministrator
-
 <#
 .SYNOPSIS
 Performs a cryptographic erase using BitLocker, compliant with NIST 800-88 rev.1.

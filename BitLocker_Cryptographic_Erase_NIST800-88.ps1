@@ -10,7 +10,7 @@ Performs a cryptographic erase using BitLocker, compliant with NIST 800-88 rev.1
 .NOTES
 - THIS WILL MAKE DATA IRRECOVERABLE
 - Requires TPM 1.2+ and BitLocker-enabled drives
-- Must perform COLD shutdown after execution.
+- Must perform COLD shutdown after execution
 #>
 
 # Configuration

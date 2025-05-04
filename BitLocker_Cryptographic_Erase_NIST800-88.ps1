@@ -17,7 +17,7 @@
     Version:        1.0
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
-    Contact:        abdullahalikareem@gmail.com
+    Contact:        kareem2@un.org, abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
@@ -40,20 +40,20 @@
 # Configuration
 $backupDir = 'D:\'  # Ensure USB D: is present for backup
 $countdownSeconds = 10
+# ADDITIONAL USER PROMPT SECTION
+Write-Output "====================================================================="
+Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
+Write-Output "          Developed by: Abdullah Kareem                              "
+Write-Output "====================================================================="
 
 Write-Output "====================================================================="
 Write-Output "          BitLocker Crypto-Erase Script Starting                     "
 Write-Output "====================================================================="
 
-
-# ADDITIONAL USER PROMPT SECTION
-Write-Output "====================================================================="
-Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
-Write-Output "          Developed by: github.com/cyberkareem                       "
-Write-Output "====================================================================="
 Write-Output "====================================================================="
 Write-Output "          WARNING: SECURE DATA ERASURE                               "
 Write-Output "====================================================================="
+
 Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
 Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
 
@@ -67,6 +67,7 @@ if ($confirmation -ne "ERASE ALL DATA") {
 Write-Output "====================================================================="
 Write-Output "          Manual BitLocker Activation Instruction                    "
 Write-Output "====================================================================="
+
 Write-Output "Before proceeding, please ensure BitLocker is activated manually as follows:"
 Write-Output "1. Open the Start menu and type 'BitLocker'."
 Write-Output "2. Select 'Manage BitLocker'."

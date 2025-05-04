@@ -5,7 +5,7 @@
 # Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-Performs a cryptographic erase using BitLocker, compliant with NIST 800-88 rev.1
+Performs a cryptographic erase using BitLocker, compliant with NIST 800-88 rev.1.
 
 .NOTES
 - THIS WILL MAKE DATA IRRECOVERABLE.

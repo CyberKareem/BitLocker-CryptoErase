@@ -3,21 +3,78 @@
 # ensuring data is permanently deleted and unrecoverable.
 
 # Requires -RunAsAdministrator
+
 <#
 .SYNOPSIS
-Performs a cryptographic erase using BitLocker, compliant with NIST 800-88 rev.1.
+    BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance
+
+.DESCRIPTION
+    This script performs a cryptographic erase on all internal drives using BitLocker,
+    ensuring data is permanently deleted and unrecoverable in accordance with
+    NIST Special Publication 800-88 Revision 1 guidelines.
 
 .NOTES
-- THIS WILL MAKE DATA IRRECOVERABLE
-- Requires TPM 1.2+ and BitLocker-enabled drives
-- Must perform COLD shutdown after execution
+    Version:        1.0
+    Author:         Abdullah Kareem
+    GitHub:         https://github.com/cyberkareem
+    Contact:        abdullahalikareem@gmail.com
+    Creation Date:  April 25, 2025
+    
+    WARNING: THIS WILL MAKE DATA IRRECOVERABLE
+    * Requires TPM 1.2+ and BitLocker capability
+    * Must perform COLD shutdown after execution
+    * For use only on systems being decommissioned or repurposed
+
+.EXAMPLE
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    .\BitLocker-CryptoErase.ps1
+
+.LINK
+    https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf
 #>
+
+#-------------------------------------------------------------------------------------
+# CONFIGURATION VARIABLES
+#-------------------------------------------------------------------------------------
 
 # Configuration
 $backupDir = 'D:\'  # Ensure USB D: is present for backup
-$countdownSeconds = 60
+$countdownSeconds = 10
 
-Write-Output "=== BitLocker Crypto-Erase Script Starting ==="
+Write-Output "====================================================================="
+Write-Output "          BitLocker Crypto-Erase Script Starting                     "
+Write-Output "====================================================================="
+
+
+# ADDITIONAL USER PROMPT SECTION
+Write-Output "====================================================================="
+Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
+Write-Output "          Developed by: github.com/cyberkareem                       "
+Write-Output "====================================================================="
+Write-Output "====================================================================="
+Write-Output "          WARNING: SECURE DATA ERASURE                               "
+Write-Output "====================================================================="
+Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
+Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
+
+$confirmation = Read-Host "Type 'ERASE ALL DATA' (all caps) to confirm and continue"
+if ($confirmation -ne "ERASE ALL DATA") {
+    Write-Error "Confirmation text doesn't match. Process aborted."
+    exit 1
+}
+
+# MANUAL BITLOCKER ACTIVATION INSTRUCTIONS
+Write-Output "====================================================================="
+Write-Output "          Manual BitLocker Activation Instruction                    "
+Write-Output "====================================================================="
+Write-Output "Before proceeding, please ensure BitLocker is activated manually as follows:"
+Write-Output "1. Open the Start menu and type 'BitLocker'."
+Write-Output "2. Select 'Manage BitLocker'."
+Write-Output "3. For each internal drive listed, click 'Turn on BitLocker'."
+Write-Output "4. Follow prompts to set encryption mode (select 'Encrypt entire drive')."
+Write-Output "5. Save the recovery key safely."
+Write-Output "`nPress Enter once you have manually activated BitLocker on all drives to continue."
+Read-Host
 
 # 1. TPM Verification
 $tpm = Get-Tpm
@@ -69,12 +126,23 @@ foreach ($vol in $volumes) {
             $vol = $volUpdated
         }
 
-        # 5. Enable BitLocker encryption if not already encrypted
-        if ($vol.ProtectionStatus -eq 'Off') {
+        # 5. Check if BitLocker is already enabled
+        if ($vol.ProtectionStatus -eq 'On') {
+            Write-Output "${drive} is already encrypted. Skipping BitLocker enablement."
+        } else {
+            # 6. Enable BitLocker encryption if not already encrypted
             Write-Output "${drive} is not encrypted. Enabling BitLocker (full disk encryption)..."
             try {
-                # Simplified Enable-BitLocker command
-                Enable-BitLocker -MountPoint $drive -EncryptionMethod XtsAes256 -UsedSpaceOnly:$false -RecoveryPasswordProtector -ErrorAction Stop
+                # Check if the drive is the operating system drive
+                if ($vol.VolumeType -eq 'OperatingSystem') {
+                    Write-Output "Enabling BitLocker on Operating System drive ${drive} with TPM and Recovery Password Protector..."
+                    Enable-BitLocker -MountPoint $drive -EncryptionMethod XtsAes256 -UsedSpaceOnly:$false `
+                                    -TpmProtector -RecoveryPasswordProtector -SkipHardwareTest -ErrorAction Stop
+                } else {
+                    Write-Output "Enabling BitLocker on data drive ${drive} with Recovery Password Protector..."
+                    Enable-BitLocker -MountPoint $drive -EncryptionMethod XtsAes256 -UsedSpaceOnly:$false `
+                                    -RecoveryPasswordProtector -ErrorAction Stop
+                }
                 Write-Output "BitLocker encryption started on ${drive}."
             } catch {
                 Write-Error "Failed to enable BitLocker on ${drive}: $_"
@@ -82,16 +150,27 @@ foreach ($vol in $volumes) {
             }
         }
 
-        # 6. Wait for encryption to finish (if in progress)
-        $status = Get-BitLockerVolume -MountPoint $drive
-        if ($status.VolumeStatus -ne 'FullyEncrypted') {
-            Write-Output "Waiting for ${drive} encryption to complete..."
-            while ((Get-BitLockerVolume -MountPoint $drive).VolumeStatus -eq 'EncryptionInProgress') {
-                Start-Sleep -Seconds 5
+        # 7. Ensure BitLocker is fully activated
+        Write-Output "Ensuring BitLocker is fully activated on ${drive}..."
+        try {
+            # Resume BitLocker if it is in a suspended state
+            Resume-BitLocker -MountPoint $drive -ErrorAction Stop
+            Write-Output "BitLocker resumed on ${drive}."
+
+            # Check BitLocker status again
+            $status = Get-BitLockerVolume -MountPoint $drive
+            if ($status.VolumeStatus -ne 'FullyEncrypted') {
+                Write-Output "Waiting for ${drive} encryption to complete..."
+                while ((Get-BitLockerVolume -MountPoint $drive).VolumeStatus -eq 'EncryptionInProgress') {
+                    Start-Sleep -Seconds 5
+                }
+                Write-Output "${drive} is now fully encrypted."
+            } else {
+                Write-Output "${drive} is already fully encrypted."
             }
-            Write-Output "${drive} is now fully encrypted."
-        } else {
-            Write-Output "${drive} is already fully encrypted."
+        } catch {
+            Write-Error "Failed to ensure BitLocker is fully activated on ${drive}: $_"
+            continue
         }
 
         # If volume was encrypted used-space-only originally, wipe free space to encrypt it as well
@@ -102,7 +181,7 @@ foreach ($vol in $volumes) {
             Write-Output "Free space on ${drive} has been encrypted (wipefreespace complete)."
         }
 
-        # 7. Cryptographic erase: remove all original protectors and leave an unknown one
+        # 8. Cryptographic erase: remove all original protectors and leave an unknown one
         Write-Output "Removing known protectors and adding a new unknown recovery key for ${drive}..."
         # Record existing protector IDs to identify the new one later
         $origProtectors = (Get-BitLockerVolume -MountPoint $drive).KeyProtector
@@ -132,6 +211,9 @@ foreach ($vol in $volumes) {
 }
 
 # Disable Fast Startup
+Write-Output "====================================================================="
+Write-Output "          Wrapping things up                                         "
+Write-Output "====================================================================="
 Write-Output "Disabling Fast Startup..."
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Value 0 -Force
 
@@ -142,17 +224,16 @@ try {
     Write-Output "TPM cleared successfully."
 }
 catch {
-    Write-Output "TPM clearance failed (REQUIRES BIOS RESET)"
+    Write-Output "TPM clearance (REQUIRES BIOS RESET)"
 }
 
 Write-Output "`nAll internal drives processed. The system will reboot now to complete the purge."
 
 # Countdown before rebooting
-$seconds = $countdownSeconds
-while ($seconds -gt 0) {
-    Write-Output "Restarting in $seconds seconds..."
+Write-Host "System will reboot in $countdownSeconds seconds..." -ForegroundColor Yellow
+for ($i = $countdownSeconds; $i -gt 0; $i--) {
+     Write-Host "`rRebooting in $i seconds..." -NoNewline
     Start-Sleep -Seconds 1
-    $seconds--
-}
+    }
 
 Restart-Computer -Force

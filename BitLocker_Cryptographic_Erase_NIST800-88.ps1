@@ -31,11 +31,6 @@
 .LINK
     https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf
 #>
-
-#-------------------------------------------------------------------------------------
-# CONFIGURATION VARIABLES
-#-------------------------------------------------------------------------------------
-
 # Configuration
 $countdownSeconds = 10
 # ADDITIONAL USER PROMPT SECTION
@@ -54,6 +49,35 @@ Write-Output "==================================================================
 
 Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
 Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
+
+# Add this function near the top of your script (after parameters and before main execution)
+function Confirm-DomainDisconnect {
+    $choices = [System.Management.Automation.Host.ChoiceDescription[]] @(
+        [System.Management.Automation.Host.ChoiceDescription]::new("&Yes", "Computer has been disconnected from domain"),
+        [System.Management.Automation.Host.ChoiceDescription]::new("&No", "Computer is still domain-joined")
+    )
+    
+    do {
+        $decision = $Host.UI.PromptForChoice(
+            "Domain Connection Check", 
+            "Has the computer been disconnected from the domain?",
+            $choices,
+            1  # Default to No (index 1)
+        )
+        
+        if ($decision -eq 1) {
+            Write-Host "`n[ABORTING] Computer must be disconnected from domain first!" -ForegroundColor Red
+            Write-Host "Please disconnect from domain and rerun the script.`n" -ForegroundColor Yellow
+            exit 1
+        }
+        else {
+            Write-Host "`n[CONFIRMED] Proceeding with cryptographic erase...`n" -ForegroundColor Green
+            break
+        }
+    } while ($true)
+}
+
+Confirm-DomainDisconnect
 
 $confirmation = Read-Host "Type 'ERASE ALL DATA' (all caps) to confirm and continue"
 if ($confirmation -ne "ERASE ALL DATA") {

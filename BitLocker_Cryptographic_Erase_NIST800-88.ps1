@@ -17,7 +17,6 @@
     Version:        1.0
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
-    Contact:        abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
@@ -25,7 +24,7 @@
     * Must perform COLD shutdown after execution
     * For use only on systems being decommissioned or repurposed
 
-.EXAMPLE
+.USAGE
     Set-ExecutionPolicy Bypass -Scope Process -Force
     .\BitLocker-CryptoErase.ps1
 
@@ -38,12 +37,11 @@
 #-------------------------------------------------------------------------------------
 
 # Configuration
-$backupDir = 'D:\'  # Ensure USB D: is present for backup
 $countdownSeconds = 10
 # ADDITIONAL USER PROMPT SECTION
 Write-Output "====================================================================="
 Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
-Write-Output "          Developed by: Abdullah Kareem                              "
+Write-Output "          Developed by: Abdullah Kareem github.com/cyberkareem      "
 Write-Output "====================================================================="
 
 Write-Output "====================================================================="
@@ -85,11 +83,6 @@ if (-not $tpm.TpmPresent -or -not $tpm.TpmEnabled -or -not $tpm.TpmActivated -or
 }
 Write-Output "TPM is present, enabled, activated, owned, and ready."
 
-# 2. Set backup directory for recovery keys (ensure USB D: is present)
-if (-not (Test-Path -Path $backupDir)) {
-    Write-Error "Backup drive $backupDir not found. Please insert the USB drive as D: and rerun."
-    exit 1
-}
 
 # 3. Get all fixed internal volumes (exclude the backup drive and no-letter volumes)
 $volumes = Get-BitLockerVolume | Where-Object {
@@ -105,8 +98,6 @@ foreach ($vol in $volumes) {
         if ($keyProtectors) {
             foreach ($protector in $keyProtectors) {
                 $recKey = $protector.RecoveryPassword
-                $outfile = "${backupDir}BitLockerRecovery_${drive.TrimEnd(':')}.txt"
-                "$drive Recovery Key: $recKey" | Out-File -FilePath $outfile -Append -Encoding ASCII
             }
             Write-Output "Backed up existing recovery key(s) for ${drive} to USB."
         } else {
@@ -118,13 +109,9 @@ foreach ($vol in $volumes) {
             foreach ($protector in $newRecProtector) {
                 if ($protector.RecoveryPassword) {
                     $recKey = $protector.RecoveryPassword
-                    $outfile = "${backupDir}BitLockerRecovery_${drive.TrimEnd(':')}.txt"
-                    "$drive Recovery Key: $recKey" | Out-File -FilePath $outfile -Append -Encoding ASCII
-                    Write-Output "Added and backed up a recovery key for ${drive}."
                 }
             }
-            # Refresh $vol object to include the new protector
-            $vol = $volUpdated
+            
         }
 
         # 5. Check if BitLocker is already enabled

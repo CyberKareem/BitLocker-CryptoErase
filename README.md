@@ -1,64 +1,140 @@
-BitLocker Cryptographic Erase Script (NIST 800-88 Rev.1 Compliant)
 
-Overview
+# 🔐 BitLocker Cryptographic Erase Script
 
-This PowerShell script automates secure data sanitization by performing a cryptographic erase on all internal drives using BitLocker, following the NIST SP 800-88 Rev.1 "Purge" standard.
-It is designed to make data permanently unrecoverable by encrypting the drive fully and invalidating all known encryption keys.
+> **Author**: Abdullah Kareem  
+> **License**: [MIT License](./LICENSE)  
+> **GitHub**: [github.com/cyberkareem](https://github.com/cyberkareem)  
+> **Compliance**: NIST SP 800-88 Rev. 1 – Purge-Level Sanitization
 
-Features
+---
 
-- Detects and verifies TPM presence and readiness
-- Enables BitLocker (full disk encryption, XTS-AES-256) if not already enabled
-- Monitors and waits for full encryption completion
-- Backs up recovery keys automatically to a specified USB drive (e.g., D:\)
-- Invalidates all known encryption keys (TPM, recovery keys)
-- Leaves the drive encrypted but inaccessible
-- Clears TPM (optional step, BIOS configuration may be required)
-- Provides a 60-second countdown before automatic reboot
-- Designed for compliance with NIST 800-88 Rev.1 (Purge) guidelines
+## 📄 Overview
 
-Requirements
+This PowerShell script performs **cryptographic erasure** on all internal drives using **BitLocker**, in alignment with **NIST SP 800-88 Revision 1 Purge-level** requirements. It ensures data is permanently destroyed by removing all key protectors, making decryption impossible.
 
-- Windows 10 or Windows 11
-- Administrator privileges
-- TPM 1.2+ or 2.0 (enabled, owned, activated, ready)
-- External USB drive mounted as D: for recovery key backup
-- Secure Boot may be enabled or disabled
+This script is intended for **Windows systems** being decommissioned or repurposed and supports:
 
-Usage Instructions
+- Microsoft Surface devices
+- Lenovo ThinkPads
+- Any NVMe/SATA-based SSD laptop with TPM and BitLocker
 
-- Insert a USB flash drive and confirm it appears as D:\.
-- Open PowerShell as Administrator.
-- Set execution policy to allow running the script:
-  
-Set-ExecutionPolicy Bypass -Scope Process -Force
-- Run the script:
-  
-.\BitLocker_Cryptographic_Erase_NIST800-88.ps1
+---
 
-The script will:
+## ✅ Features
 
-- Validate TPM.
-- Encrypt any unprotected internal drives.
-- Back up BitLocker recovery keys.
-- Invalidate known keys (perform cryptographic erase).
-- Clear TPM if allowed.
-- Reboot the system automatically after a countdown.
+- Full Disk Encryption using **XTS-AES 256**
+- Support for **NVMe SSDs**, SEDs, and TPM-backed BitLocker setups
+- Automatic protector removal for **Cryptographic Erase**
+- Clears **TPM** and disables **Fast Startup** to ensure **cold shutdown**
+- Script is **interactive**, provides confirmations, and logs all steps
+- **Domain detection** and enforcement of local-only context
 
-Important Warnings
+---
 
-⚠️ This script makes data recovery impossible.
+## 📌 Requirements
 
-⚠️ Ensure that all important data is backed up elsewhere before running.
+- Windows 10/11 with PowerShell
+- TPM 1.2 or higher (must be enabled, owned, and ready)
+- BitLocker available and supported on internal drives
+- Local Administrator privileges
+- Must be **disconnected from any domain (Azure AD or On-Prem AD)**
 
-⚠️ After reboot, drives will be encrypted and locked with unknown keys and data will be lost forever.
+---
 
-License
+## 🛠️ Usage
 
-This project is licensed under the MIT License.
+1. **Disconnect from domain** (Azure AD or On-Prem)  
+2. **Log in as local administrator**  
+3. **Run PowerShell as Administrator**  
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force
+   .\BitLocker-CryptoErase.ps1
+   ```
+4. **Follow on-screen prompts** for confirmation and readiness  
+5. Script performs the following:
+   - Verifies TPM readiness
+   - Enables BitLocker if not already active
+   - Ensures full encryption and wipes free space
+   - Removes all protectors and adds unknown key
+   - Clears TPM and disables Fast Startup
+6. **Machine reboots** after countdown
 
-Credits
+---
 
-Created and maintained by Abdullah Kareem @CyberKareem.
+## 📋 Technician Checklist
 
-Designed for secure enterprise-grade media sanitization following best practices.
+- [ ] Device is disconnected from domain (Azure AD or On-Premise)
+- [ ] BitLocker is enabled on all internal drives
+- [ ] TPM is functional and ready
+- [ ] Data backup is complete (if applicable)
+- [ ] Script executed as Administrator
+- [ ] System reboots and prompts for recovery key (as expected)
+- [ ] Final step: partitions deleted via recovery media
+
+---
+
+## ⚠️ Warning
+
+> **This operation is irreversible.**  
+> Once protector keys are removed, encrypted data cannot be decrypted.  
+> Run this script **only on devices marked for secure decommissioning or disposal**.
+
+---
+
+## 📜 NIST Compliance
+
+The script meets or exceeds **NIST SP 800-88 Rev. 1 Purge** requirements by:
+
+| Script Phase               | NIST Requirement Met                            | Purpose                                               |
+|---------------------------|--------------------------------------------------|-------------------------------------------------------|
+| BitLocker Encryption       | Appendix A (FIPS 140-2 AES-XTS)                 | Encrypts drive with approved cryptographic algorithm  |
+| Free Space Wipe           | Appendix A / §2.5                               | Ensures full drive content is encrypted               |
+| Key Protector Removal     | Appendix A                                      | Removes decryption capability                         |
+| TPM Clearance             | Appendix A                                      | Clears stored secrets in hardware                     |
+| Fast Startup Disabled     | Page 24                                         | Guarantees cold boot and key removal from memory      |
+
+---
+
+## 📦 Deployment Use Cases
+
+This script is suitable for:
+
+- Enterprises retiring laptops
+- Asset disposal procedures
+- Zero-touch device purging in IT support environments
+- Field technician use (via USB or SCCM/Intune automation)
+
+---
+
+## 🧾 License
+
+This project is licensed under the [MIT License](./LICENSE).  
+You may use, modify, and distribute it freely with proper attribution.
+
+---
+
+## ✉️ Contact
+
+For contributions, inquiries, or improvements:
+
+- 📧 kareem2@un.org  
+- 📧 abdullahalikareem@gmail.com  
+- 🌐 https://linktr.ee/cyberkareem  
+- 🔗 https://github.com/cyberkareem
+
+---
+
+## 🚀 Roadmap
+
+- [ ] Add logging functionality
+- [ ] Integrate GUI interface for help desk staff
+- [ ] Autopilot/Intune token invalidation support
+
+---
+
+## 🙏 Acknowledgements
+
+Inspired by community best practices, NIST publications, and real-world enterprise security needs.  
+Special thanks to contributors in the InfoSec and PowerShell ecosystems.
+
+---

@@ -43,25 +43,24 @@ This script is intended for **Windows systems** being decommissioned or repurpos
 
 ## 🛠️ Usage
 
-1. **Disconnect from domain** (Azure AD or On-Prem)  
-2. **Log in as local administrator**  
-3. **Run PowerShell as Administrator**  
+1. **Disconnect from domain** (Azure AD or On-Prem)   
+2. **Run PowerShell as Administrator**  
    ```powershell
    Set-ExecutionPolicy Bypass -Scope Process -Force
    .\BitLocker-CryptoErase.ps1
    ```
-4. **Follow on-screen prompts** for confirmation and readiness  
-5. Script performs the following:
+3. **Follow on-screen prompts** for confirmation and readiness  
+4. Script performs the following:
    - Verifies TPM readiness
    - Enables BitLocker if not already active
    - Ensures full encryption and wipes free space
    - Removes all protectors and adds unknown key
    - Clears TPM and disables Fast Startup
-6. **Machine reboots** after countdown
+5. **Machine reboots** after countdown
 
 ---
 
-## 📋 Technician Checklist
+## 📋 Checklist
 
 - [ ] Device is disconnected from domain (Azure AD or On-Premise)
 - [ ] BitLocker is enabled on all internal drives
@@ -85,9 +84,9 @@ This script is intended for **Windows systems** being decommissioned or repurpos
 
 The script meets or exceeds **NIST SP 800-88 Rev. 1 Purge** requirements by:
 
-| Script Phase               | NIST Requirement Met                            | Purpose                                               |
-|---------------------------|--------------------------------------------------|-------------------------------------------------------|
-| BitLocker Encryption       | Appendix A (FIPS 140-2 AES-XTS)                 | Encrypts drive with approved cryptographic algorithm  |
+| Script Phase              | NIST Requirement Met                            | Purpose                                               |
+|---------------------------|-------------------------------------------------|-------------------------------------------------------|
+| BitLocker Encryption      | Appendix A (FIPS 140-2 AES-XTS)                 | Encrypts drive with approved cryptographic algorithm  |
 | Free Space Wipe           | Appendix A / §2.5                               | Ensures full drive content is encrypted               |
 | Key Protector Removal     | Appendix A                                      | Removes decryption capability                         |
 | TPM Clearance             | Appendix A                                      | Clears stored secrets in hardware                     |
@@ -102,7 +101,7 @@ This script is suitable for:
 - Enterprises retiring laptops
 - Asset disposal procedures
 - Zero-touch device purging in IT support environments
-- Field technician use (via USB or SCCM/Intune automation)
+- Could be used (via USB or SCCM/Intune automation)
 
 ---
 
@@ -117,18 +116,9 @@ You may use, modify, and distribute it freely with proper attribution.
 
 For contributions, inquiries, or improvements:
 
-- 📧 kareem2@un.org  
 - 📧 abdullahalikareem@gmail.com  
 - 🌐 https://linktr.ee/cyberkareem  
 - 🔗 https://github.com/cyberkareem
-
----
-
-## 🚀 Roadmap
-
-- [ ] Add logging functionality
-- [ ] Integrate GUI interface for help desk staff
-- [ ] Autopilot/Intune token invalidation support
 
 ---
 

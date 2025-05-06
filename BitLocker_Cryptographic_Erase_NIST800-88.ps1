@@ -17,7 +17,6 @@
     Version:        1.0
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
-    Contact:        kareem2@un.org, abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE

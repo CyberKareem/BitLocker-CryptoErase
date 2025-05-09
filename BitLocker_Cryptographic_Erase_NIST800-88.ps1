@@ -1,4 +1,4 @@
-# BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance.
+# BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance
 # This script performs a cryptographic erase on all internal drives using BitLocker,
 # ensuring data is permanently deleted and unrecoverable.
 
@@ -14,7 +14,7 @@
     NIST Special Publication 800-88 Revision 1 guidelines.
 
 .NOTES
-    Version:        1.0
+    Version:        1.1
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
     Creation Date:  April 25, 2025
@@ -50,16 +50,61 @@ Write-Output "          Developed by: Abdullah Kareem                           
 Write-Output "====================================================================="
 
 Write-Output "====================================================================="
+Write-Output "                                                                     "
 Write-Output "          BitLocker Crypto-Erase Script Starting                     "
+Write-Output "                                                                     "
 Write-Output "====================================================================="
 
 Write-Output "====================================================================="
+Write-Output "                                                                     "
 Write-Output "          WARNING: SECURE DATA ERASURE                               "
+Write-Output "                                                                     "
 Write-Output "====================================================================="
 
 # Critical warning displayed to user about data destruction
 Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
 Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
+
+#====================================================================================
+# EXTERNAL DRIVE IDENTIFICATION
+#====================================================================================
+
+# List all available drives for user reference
+Write-Output "`n====================================================================="
+Write-Output "          DRIVE INFORMATION                                          "
+Write-Output "====================================================================="
+
+# Get and display all available drives with their information
+$allDrives = Get-Volume | Where-Object { $_.DriveLetter } | Select-Object DriveLetter, FileSystemLabel, DriveType, SizeRemaining, Size
+Write-Output "Available drives on this system:"
+$allDrives | Format-Table -AutoSize
+
+# Prompt for external drive letters to exclude from erasure
+$excludeDrives = @()
+do {
+    $driveInput = Read-Host "`nEnter drive letter to EXCLUDE from erasure (e.g., 'D' for D: drive) or/and press Enter to proceed"
+    if ($driveInput -ne "") {
+        # Convert to uppercase and add to exclusion list with colon
+        $driveLetter = $driveInput.ToUpper().TrimEnd(':')
+        $excludeDrives += "${driveLetter}:"
+        Write-Host "Added ${driveLetter}: to exclusion list" -ForegroundColor Yellow
+    }
+} while ($driveInput -ne "")
+
+# Confirm exclusions with user
+if ($excludeDrives.Count -gt 0) {
+    Write-Host "`nThe following drives will be EXCLUDED from erasure:" -ForegroundColor Cyan
+    $excludeDrives | ForEach-Object { Write-Host "  - $_" -ForegroundColor Cyan }
+} else {
+    Write-Host "`nNo drives will be excluded. ALL fixed internal drives will be erased!" -ForegroundColor Red
+}
+
+# Final confirmation
+$confirmExclusions = Read-Host "`nAre these exclusions correct? (Y/N)"
+if ($confirmExclusions.ToUpper() -ne "Y") {
+    Write-Error "Drive exclusion configuration aborted by user. Please restart the script."
+    exit 1
+}
 
 #====================================================================================
 # DOMAIN DISCONNECTION VERIFICATION FUNCTION
@@ -146,10 +191,17 @@ Write-Output "TPM is present, enabled, activated, owned, and ready."
 # MAIN VOLUME PROCESSING LOOP
 #====================================================================================
 
-# Get all fixed internal volumes (excluding the backup drive and volumes without a mount point)
+# Get all fixed internal volumes (excluding specified drives and volumes without a mount point)
 $volumes = Get-BitLockerVolume | Where-Object {
-    $_.MountPoint -and ($_.MountPoint -ne 'D:') -and ($_.VolumeType -ne 'Unknown')
+    $_.MountPoint -and 
+    ($_.VolumeType -ne 'Unknown') -and
+    ($excludeDrives -notcontains $_.MountPoint)
 }
+
+# Show which drives will be processed
+Write-Host "`nThe following drives will be ERASED:" -ForegroundColor Red
+$volumes | ForEach-Object { Write-Host "  - $($_.MountPoint)" -ForegroundColor Red }
+Write-Host "" # Empty line for readability
 
 # Process each volume individually
 foreach ($vol in $volumes) {

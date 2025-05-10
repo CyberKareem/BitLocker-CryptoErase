@@ -61,7 +61,7 @@ Write-Output "          WARNING: SECURE DATA ERASURE                            
 Write-Output "                                                                     "
 Write-Output "====================================================================="
 
-# Critical warning displayed to user about data destruction.
+# Critical warning displayed to user about data destruction
 Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
 Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
 

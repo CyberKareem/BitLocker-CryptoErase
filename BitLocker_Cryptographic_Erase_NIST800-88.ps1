@@ -37,7 +37,7 @@
 #====================================================================================
 
 # Time in seconds to wait before the script forces a system reboot at completion
-$countdownSeconds = 10
+$countdownSeconds = 20
 
 #====================================================================================
 # USER INTERFACE - INITIAL WARNINGS AND INFORMATION

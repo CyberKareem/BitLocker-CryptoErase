@@ -19,7 +19,6 @@
     Version:        1.2
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
-    Contact:        kareem2@un.org, abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
     Modified Date:  May 09, 2025
     

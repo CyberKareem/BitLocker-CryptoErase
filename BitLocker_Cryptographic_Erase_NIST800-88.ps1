@@ -20,7 +20,6 @@
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
     Creation Date:  April 25, 2025
-    Modified Date:  May 09, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
     * Requires TPM 1.2+ and BitLocker capability

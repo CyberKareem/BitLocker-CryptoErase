@@ -30,6 +30,7 @@
 
 .LINK
     https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf
+    https://github.com/CyberKareem/BitLocker-CryptoErase
 #>
 
 #====================================================================================

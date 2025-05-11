@@ -12,12 +12,16 @@
     This script performs a cryptographic erase on all internal drives using BitLocker,
     ensuring data is permanently deleted and unrecoverable in accordance with
     NIST Special Publication 800-88 Revision 1 guidelines.
+    
+    Enhanced version includes handling of unallocated space to ensure complete drive erasure.
 
 .NOTES
-    Version:        1.1
+    Version:        1.2
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
+    Contact:        kareem2@un.org, abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
+    Modified Date:  May 09, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
     * Requires TPM 1.2+ and BitLocker capability
@@ -26,11 +30,10 @@
 
 .EXAMPLE
     Set-ExecutionPolicy Bypass -Scope Process -Force
-    .\BitLocker-CryptoErase.ps1
+    .\BitLocker-CryptoErase-Enhanced.ps1
 
 .LINK
     https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-88r1.pdf
-    https://github.com/CyberKareem/BitLocker-CryptoErase
 #>
 
 #====================================================================================
@@ -38,7 +41,7 @@
 #====================================================================================
 
 # Time in seconds to wait before the script forces a system reboot at completion
-$countdownSeconds = 20
+$countdownSeconds = 10
 
 #====================================================================================
 # USER INTERFACE - INITIAL WARNINGS AND INFORMATION
@@ -51,15 +54,11 @@ Write-Output "          Developed by: Abdullah Kareem                           
 Write-Output "====================================================================="
 
 Write-Output "====================================================================="
-Write-Output "                                                                     "
 Write-Output "          BitLocker Crypto-Erase Script Starting                     "
-Write-Output "                                                                     "
 Write-Output "====================================================================="
 
 Write-Output "====================================================================="
-Write-Output "                                                                     "
 Write-Output "          WARNING: SECURE DATA ERASURE                               "
-Write-Output "                                                                     "
 Write-Output "====================================================================="
 
 # Critical warning displayed to user about data destruction
@@ -83,7 +82,7 @@ $allDrives | Format-Table -AutoSize
 # Prompt for external drive letters to exclude from erasure
 $excludeDrives = @()
 do {
-    $driveInput = Read-Host "`nEnter drive letter to EXCLUDE from erasure (e.g., 'D' for D: drive) or/and press Enter to proceed"
+    $driveInput = Read-Host "`nEnter drive letter to EXCLUDE from erasure (e.g., 'D' for D: drive) or press Enter if done"
     if ($driveInput -ne "") {
         # Convert to uppercase and add to exclusion list with colon
         $driveLetter = $driveInput.ToUpper().TrimEnd(':')
@@ -144,11 +143,349 @@ function Confirm-DomainDisconnect {
 }
 
 #====================================================================================
+# UNALLOCATED SPACE HANDLING
+#====================================================================================
+
+function Process-UnallocatedSpace {
+    Write-Output "`n====================================================================="
+    Write-Output "          DETECTING AND FORMATTING UNALLOCATED SPACE                 "
+    Write-Output "====================================================================="
+
+    # Log the excluded drive list for debugging
+    if ($excludeDrives.Count -gt 0) {
+        Write-Output "Excluded drives: $($excludeDrives -join ', ')"
+    } else {
+        Write-Output "No drives excluded."
+    }
+    
+    # Get all physical disks that aren't excluded
+    $physicalDisks = Get-Disk | Where-Object { 
+        $_.BusType -ne 'USB' -and     # Exclude USB drives
+        $_.IsBoot -eq $true -or       # Include boot disk
+        $_.IsSystem -eq $true -or     # Include system disk
+        $_.OperationalStatus -eq 'Online' # Include other online internal disks
+    }
+    
+    foreach ($disk in $physicalDisks) {
+        $diskNumber = $disk.Number
+        
+        # Get all volumes on this disk
+        $diskVolumes = Get-Partition -DiskNumber $diskNumber | 
+                       Where-Object { $_.DriveLetter } | 
+                       ForEach-Object { "$($_.DriveLetter):" }
+        
+        Write-Output "Checking Disk $diskNumber with volumes: $($diskVolumes -join ', ')"
+        
+        # Check if this disk contains ANY excluded drives
+        $containsExcludedDrive = $false
+        foreach ($vol in $diskVolumes) {
+            if ($excludeDrives -contains $vol) {
+                $containsExcludedDrive = $true
+                Write-Output "Disk $diskNumber contains excluded drive $vol"
+                break
+            }
+        }
+        
+        # Skip entire disk if it contains any excluded drives
+        if ($containsExcludedDrive) {
+            Write-Output "Skipping Disk $diskNumber entirely as it contains excluded drive(s)."
+            continue
+        }
+        
+        # First check if disk has any unallocated space
+        $diskInfo = Get-Disk -Number $diskNumber | Select-Object Number, Size, AllocatedSize
+        $totalUnallocatedSpace = $diskInfo.Size - $diskInfo.AllocatedSize
+        $unallocatedGB = [math]::Round($totalUnallocatedSpace / 1GB, 2)
+        
+        # If significant unallocated space exists (more than 50MB), scan for individual regions
+        if ($totalUnallocatedSpace -gt 50MB) {
+            Write-Output "Disk $diskNumber has approximately $unallocatedGB GB of total unallocated space."
+            
+            # Get detailed information about unallocated regions using DiskPart
+            $diskpartScript = @"
+select disk $diskNumber
+list partition
+exit
+"@
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            $diskpartScript | Out-File -FilePath $tempFile -Encoding ASCII
+            
+            Write-Output "Scanning for individual unallocated regions on Disk $diskNumber..."
+            $diskpartOutput = diskpart /s $tempFile
+            Remove-Item -Path $tempFile -Force
+            
+            # Check if we have MBR or GPT disk - affects maximum partition count
+            $isDiskGPT = (Get-Disk -Number $diskNumber).PartitionStyle -eq "GPT"
+            $maxPartitions = if ($isDiskGPT) { 128 } else { 4 }
+            
+            # Get current partition count and calculate how many we can add
+            $currentPartitions = Get-Partition -DiskNumber $diskNumber | Measure-Object
+            $currentPartitionCount = $currentPartitions.Count
+            $remainingPartitionSlots = $maxPartitions - $currentPartitionCount
+            
+            if ($remainingPartitionSlots -le 0) {
+                Write-Output "Cannot create new partitions on Disk $diskNumber - maximum partition limit reached."
+                continue
+            }
+            
+            Write-Output "Disk $diskNumber can accommodate up to $remainingPartitionSlots new partitions."
+            
+            # Ask for confirmation once per disk before processing unallocated regions
+            $confirmFormat = Read-Host "Do you want to create volumes in all unallocated regions on Disk $diskNumber for secure erasure? (Y/N)"
+            if ($confirmFormat.ToUpper() -ne "Y") {
+                Write-Output "Skipping unallocated space on Disk $diskNumber as per user choice."
+                continue
+            }
+            
+            # Now process each unallocated region individually
+            $regionsProcessed = 0
+            $regionsAttempted = 0
+            $maxRegionsToProcess = [Math]::Min(10, $remainingPartitionSlots) # Safety limit
+            $newDriveLetters = @() # Track newly created drive letters
+            
+            # Create a more robust DiskPart script that handles both creation AND formatting
+            while ($regionsAttempted -lt $maxRegionsToProcess) {
+                try {
+                    # Create a script that creates AND formats the partition in one operation
+                    # This ensures we don't end up with raw partitions
+                    $createScript = @"
+select disk $diskNumber
+create partition primary
+format fs=ntfs label="New Volume" quick
+assign
+exit
+"@
+                    $tempCreateFile = [System.IO.Path]::GetTempFileName()
+                    $createScript | Out-File -FilePath $tempCreateFile -Encoding ASCII
+                    
+                    # Execute diskpart to create and format a single partition
+                    Write-Output "Processing unallocated region #$($regionsAttempted+1)..."
+                    $createOutput = diskpart /s $tempCreateFile
+                    Remove-Item -Path $tempCreateFile -Force
+                    
+                    # Check for success patterns in the output
+                    $successPattern1 = "DiskPart successfully created the specified partition"
+                    $successPattern2 = "DiskPart successfully assigned the drive letter"
+                    $successPattern3 = "DiskPart successfully formatted the volume"
+                    
+                    $createSucceeded = ($createOutput -match $successPattern1) -or 
+                                      ($createOutput -match $successPattern2) -or
+                                      ($createOutput -match $successPattern3)
+                    
+                    if ($createSucceeded) {
+                        $regionsProcessed++
+                        
+                        # Give system time to register the new drive
+                        Start-Sleep -Seconds 3
+                        
+                        # Parse DiskPart output to find the drive letter
+                        # Look for patterns like "Volume X has been assigned the drive letter X"
+                        $driveLetterPattern = "Volume \w+ has been assigned the drive letter ([A-Z])"
+                        $driveLetterMatch = $createOutput | Where-Object { $_ -match $driveLetterPattern }
+                        
+                        if ($driveLetterMatch) {
+                            # Extract letter from match
+                            foreach ($line in $driveLetterMatch) {
+                                if ($line -match $driveLetterPattern) {
+                                    $extractedLetter = $matches[1]
+                                    Write-Output "Created and formatted partition with drive letter ${extractedLetter}: in unallocated region #$($regionsAttempted+1)."
+                                    $newDriveLetters += "${extractedLetter}:"
+                                }
+                            }
+                        }
+                        else {
+                            # Fallback detection for newly created drive letters
+                            Write-Output "Drive letter not found in DiskPart output. Looking for newly added drives..."
+                            
+                            # Get list of drive letters before
+                            $beforeDrives = Get-Volume | Where-Object { $_.DriveLetter } | ForEach-Object { $_.DriveLetter }
+                            
+                            # Force refresh of drive info
+                            Start-Sleep -Seconds 3
+                            
+                            # Get list of drive letters after
+                            $afterDrives = Get-Volume | Where-Object { $_.DriveLetter } | ForEach-Object { $_.DriveLetter }
+                            
+                            # Find newly added drive letters
+                            $newDrives = $afterDrives | Where-Object { $beforeDrives -notcontains $_ }
+                            
+                            if ($newDrives.Count -gt 0) {
+                                foreach ($letter in $newDrives) {
+                                    # Verify the volume is properly formatted as NTFS
+                                    $volume = Get-Volume -DriveLetter $letter
+                                    
+                                    if ($volume.FileSystem -ne "NTFS") {
+                                        Write-Output "Detected new drive ${letter}: but it's not NTFS formatted. Formatting now..."
+                                        Format-Volume -DriveLetter $letter -FileSystem NTFS -NewFileSystemLabel "SecureErase" -Confirm:$false -Force | Out-Null
+                                    }
+                                    
+                                    Write-Output "Successfully prepared volume ${letter}: from unallocated space."
+                                    $newDriveLetters += "${letter}:"
+                                }
+                            }
+                            else {
+                                Write-Output "Created a new partition but couldn't determine the drive letter."
+                                
+                                # Additional step: Find partitions without drive letters and try to assign them
+                                $noLetterPartitions = Get-Partition -DiskNumber $diskNumber | Where-Object { $null -eq $_.DriveLetter }
+                                
+                                foreach ($partition in $noLetterPartitions) {
+                                    try {
+                                        # Assign a drive letter
+                                        $partition | Add-PartitionAccessPath -AssignDriveLetter
+                                        
+                                        # Get the newly assigned drive letter
+                                        Start-Sleep -Seconds 2
+                                        $updatedPartition = Get-Partition -DiskNumber $diskNumber -PartitionNumber $partition.PartitionNumber
+                                        
+                                        if ($updatedPartition.DriveLetter) {
+                                            $letter = $updatedPartition.DriveLetter
+                                            
+                                            # Format the volume if it's RAW
+                                            $volume = Get-Volume -DriveLetter $letter -ErrorAction SilentlyContinue
+                                            if ($volume -and $volume.FileSystemType -eq "RAW") {
+                                                Write-Output "Formatting RAW volume ${letter}:..."
+                                                Format-Volume -DriveLetter $letter -FileSystem NTFS -NewFileSystemLabel "SecureErase" -Confirm:$false -Force | Out-Null
+                                            }
+                                            
+                                            Write-Output "Assigned letter ${letter}: to previously letterless partition."
+                                            $newDriveLetters += "${letter}:"
+                                        }
+                                    }
+                                    catch {
+                                        Write-Output "Could not assign drive letter to partition: $_"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        # Check for specific error patterns that indicate no more unallocated space
+                        $noSpacePatterns = @(
+                            "There is not enough usable free space",
+                            "No usable free extent could be found",
+                            "The specified disk does not contain any extents",
+                            "There is not enough space available on the disk"
+                        )
+                        
+                        $noMoreSpace = $false
+                        foreach ($pattern in $noSpacePatterns) {
+                            if ($createOutput -match $pattern) {
+                                $noMoreSpace = $true
+                                break
+                            }
+                        }
+                        
+                        if ($noMoreSpace) {
+                            Write-Output "No more usable unallocated regions found on Disk $diskNumber."
+                            break
+                        }
+                        else {
+                            Write-Output "Attempt to create partition in region #$($regionsAttempted+1) failed with unknown error."
+                            # Output the DiskPart error for debugging
+                            $createOutput | ForEach-Object { Write-Output "  $_" }
+                        }
+                    }
+                }
+                catch {
+                    Write-Output "Error processing unallocated region #$($regionsAttempted+1): $_"
+                }
+                
+                $regionsAttempted++
+                
+                # Check if we've reached the disk's partition limit
+                if ($regionsProcessed -ge $remainingPartitionSlots) {
+                    Write-Output "Reached maximum partition count for Disk $diskNumber."
+                    break
+                }
+                
+                # After each attempt, scan to see if we still have unallocated space
+                $updatedDiskInfo = Get-Disk -Number $diskNumber | Select-Object Number, Size, AllocatedSize
+                $remainingUnallocated = $updatedDiskInfo.Size - $updatedDiskInfo.AllocatedSize
+                
+                if ($remainingUnallocated -lt 50MB) {
+                    Write-Output "All significant unallocated space on Disk $diskNumber has been processed."
+                    break
+                }
+            }
+            
+            # After processing, check for any RAW volumes that still need formatting
+            $rawVolumes = Get-Volume | Where-Object { $_.FileSystemType -eq "RAW" }
+            if ($rawVolumes.Count -gt 0) {
+                Write-Output "`nDetected RAW volumes that need formatting:"
+                
+                foreach ($volume in $rawVolumes) {
+                    if ($volume.DriveLetter) {
+                        $letter = $volume.DriveLetter
+                        Write-Output "Formatting RAW volume ${letter}:..."
+                        
+                        try {
+                            Format-Volume -DriveLetter $letter -FileSystem NTFS -NewFileSystemLabel "SecureErase" -Confirm:$false -Force | Out-Null
+                            Write-Output "Successfully formatted volume ${letter}: from RAW to NTFS."
+                            
+                            # Only add to newDriveLetters if not already there
+                            if ($newDriveLetters -notcontains "${letter}:") {
+                                $newDriveLetters += "${letter}:"
+                            }
+                        }
+                        catch {
+                            Write-Output "Error formatting RAW volume ${letter}: $_"
+                        }
+                    }
+                }
+            }
+            
+            if ($regionsProcessed -gt 0) {
+                Write-Output "Successfully processed $regionsProcessed unallocated regions on Disk $diskNumber."
+                Write-Output "New drive letters created: $($newDriveLetters -join ', ')"
+            } else {
+                Write-Output "No unallocated regions were successfully processed on Disk $diskNumber."
+            }
+        }
+        else {
+            Write-Output "Disk $diskNumber has no significant unallocated space."
+        }
+    }
+    
+    # Update the volume list after potentially creating new volumes
+    Write-Output "`nUpdated drive list after processing unallocated space:"
+    Get-Volume | Where-Object { $_.DriveLetter } | Select-Object DriveLetter, FileSystemLabel, FileSystemType, DriveType, SizeRemaining, Size | Format-Table -AutoSize
+    
+    # Final check to catch any remaining RAW volumes
+    $remainingRawVolumes = Get-Volume | Where-Object { $_.FileSystemType -eq "RAW" }
+    if ($remainingRawVolumes.Count -gt 0) {
+        Write-Output "`n[WARNING] There are still RAW volumes that need formatting:"
+        $remainingRawVolumes | Select-Object DriveLetter, FileSystemLabel, FileSystemType, DriveType, SizeRemaining, Size | Format-Table -AutoSize
+        
+        $formatRawVolumes = Read-Host "Do you want to attempt to format these RAW volumes now? (Y/N)"
+        if ($formatRawVolumes.ToUpper() -eq "Y") {
+            foreach ($volume in $remainingRawVolumes) {
+                if ($volume.DriveLetter) {
+                    $letter = $volume.DriveLetter
+                    Write-Output "Formatting RAW volume ${letter}:..."
+                    
+                    try {
+                        Format-Volume -DriveLetter $letter -FileSystem NTFS -NewFileSystemLabel "SecureErase" -Confirm:$false -Force | Out-Null
+                        Write-Output "Successfully formatted volume ${letter}: from RAW to NTFS."
+                    }
+                    catch {
+                        Write-Output "Error formatting RAW volume ${letter}: $_"
+                    }
+                }
+            }
+        }
+    }
+}
+
+#====================================================================================
 # USER CONFIRMATIONS
 #====================================================================================
 
 # Check domain disconnect status first
 Confirm-DomainDisconnect
+
+# Process unallocated space before proceeding with BitLocker operations
+Process-UnallocatedSpace
 
 # Require explicit confirmation by typing "ERASE ALL DATA" to prevent accidental execution
 $confirmation = Read-Host "Type 'ERASE ALL DATA' (all caps) to confirm and continue"

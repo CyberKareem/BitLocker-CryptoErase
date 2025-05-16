@@ -37,7 +37,7 @@
 # CONFIGURATION VARIABLES
 #====================================================================================
 
-# Time in seconds to wait before the script forces a system reboot at completion
+# Time in seconds to wait before the script forces a system reboot at completion.
 $countdownSeconds = 10
 
 #====================================================================================

@@ -715,7 +715,7 @@ Write-Output "`nAll internal drives processed. The system will reboot now to com
 # REBOOT COUNTDOWN AND EXECUTION
 #====================================================================================
 
-# Countdown before forcing system reboot to complete the process
+# Countdown before forcing system reboot to complete the process.
 Write-Host "System will reboot in $countdownSeconds seconds..." -ForegroundColor Yellow
 for ($i = $countdownSeconds; $i -gt 0; $i--) {
     Write-Host "`rRebooting in $i seconds..." -NoNewline

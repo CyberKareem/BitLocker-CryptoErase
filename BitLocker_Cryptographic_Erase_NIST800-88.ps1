@@ -722,5 +722,5 @@ for ($i = $countdownSeconds; $i -gt 0; $i--) {
     Start-Sleep -Seconds 1
 }
 
-# Force system reboot to apply all changes
+# Force system reboot to apply all changes.
 Restart-Computer -Force

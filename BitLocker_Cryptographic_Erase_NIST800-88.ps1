@@ -44,7 +44,7 @@ $countdownSeconds = 10
 # USER INTERFACE - INITIAL WARNINGS AND INFORMATION
 #====================================================================================
 
-# Display script header and warning banners
+# Display script header and warning banners.
 Write-Output "====================================================================="
 Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
 Write-Output "          Developed by: Abdullah Kareem                              "

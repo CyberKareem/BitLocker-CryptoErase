@@ -12,7 +12,7 @@
     This script performs a cryptographic erase on all internal drives using BitLocker,
     ensuring data is permanently deleted and unrecoverable in accordance with
     NIST Special Publication 800-88 Revision 1 guidelines
-    Enhanced version includes handling of unallocated space to ensure complete drive erasure.
+    Enhanced version includes handling of unallocated space to ensure complete drive erasure
 
 .NOTES
     Version:        1.2

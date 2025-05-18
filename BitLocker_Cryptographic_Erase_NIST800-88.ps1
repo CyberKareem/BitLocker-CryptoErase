@@ -6,7 +6,7 @@
 
 <#
 .SYNOPSIS
-    BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance
+    BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance.
 
 .DESCRIPTION
     This script performs a cryptographic erase on all internal drives using BitLocker,

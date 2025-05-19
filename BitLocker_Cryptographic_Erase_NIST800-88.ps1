@@ -44,7 +44,7 @@ Write-Host @"
  ╔══════════════════════════════════════════════════════════════════════════════════════╗
  ║  [*] BITLOCKER CRYPTOGRAPHIC SECURE ERASE UTILITY - NIST 800-88 REV.1 COMPLIANT      ║
  ║  [*] SECURE DATA DESTRUCTION TOOL | v1.2                                             ║ 
- ║  [*] DEVELOPED BY: ABDULLAH KAREEM  | Gitbut.com/cyberkareem                         ║
+ ║  [*] DEVELOPED BY: ABDULLAH KAREEM  | Github.com/CyberKareem                         ║
  ╚══════════════════════════════════════════════════════════════════════════════════════╝
 "@ -ForegroundColor White
 

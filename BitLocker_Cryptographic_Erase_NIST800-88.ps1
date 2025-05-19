@@ -6,24 +6,25 @@
 
 <#
 .SYNOPSIS
-    BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance.
+    BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance
 
 .DESCRIPTION
     This script performs a cryptographic erase on all internal drives using BitLocker,
     ensuring data is permanently deleted and unrecoverable in accordance with
-    NIST Special Publication 800-88 Revision 1 guidelines
-    Enhanced version includes handling of unallocated space to ensure complete drive erasure
+    NIST Special Publication 800-88 Revision 1 guidelines.
+    It ncludes handling of unallocated spaces to ensure complete drive erasure.
 
 .NOTES
     Version:        1.2
     Author:         Abdullah Kareem
     GitHub:         https://github.com/cyberkareem
+    Contact:        abdullahalikareem@gmail.com
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
-    * Requires TPM 1.2+ and BitLocker capability.
-    * Must perform COLD shutdown after execution.
-    * For use only on systems being decommissioned or repurposed.
+    * Requires TPM 1.2+ and BitLocker capability
+    * Must perform COLD shutdown after execution
+    * For use only on systems being decommissioned or repurposed
 
 .EXAMPLE
     Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -34,43 +35,66 @@
 #>
 
 #====================================================================================
+# MAIN INTRO BANNER
+#====================================================================================
+
+Write-Host @"
+
+                                                                                            
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [*] BITLOCKER CRYPTOGRAPHIC SECURE ERASE UTILITY - NIST 800-88 REV.1 COMPLIANT      ║
+ ║  [*] SECURE DATA DESTRUCTION TOOL | v1.2                                             ║ 
+ ║  [*] DEVELOPED BY: ABDULLAH KAREEM  | Gitbut.com/cyberkareem                         ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
+
+#====================================================================================
 # CONFIGURATION VARIABLES
 #====================================================================================
 
-# Time in seconds to wait before the script forces a system reboot at completion.
+# Time in seconds to wait before the script forces a system reboot at completion
 $countdownSeconds = 10
 
 #====================================================================================
 # USER INTERFACE - INITIAL WARNINGS AND INFORMATION
 #====================================================================================
 
-# Display script header and warning banners.
-Write-Output "====================================================================="
-Write-Output "          BitLocker Cryptographic Erase - NIST 800-88 Rev.1          "
-Write-Output "          Developed by: Abdullah Kareem                              "
-Write-Output "====================================================================="
+# Display script header and warning banners
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [!] SECURITY WARNING                                                                ║
+ ║  [!] ██╗    ██╗ █████╗ ██████╗ ███╗   ██╗██╗███╗   ██╗ ██████╗                       ║
+ ║  [!] ██║    ██║██╔══██╗██╔══██╗████╗  ██║██║████╗  ██║██╔════╝                       ║
+ ║  [!] ██║ █╗ ██║███████║██████╔╝██╔██╗ ██║██║██╔██╗ ██║██║  ███╗                      ║
+ ║  [!] ██║███╗██║██╔══██║██╔══██╗██║╚██╗██║██║██║╚██╗██║██║   ██║                      ║
+ ║  [!] ╚███╔███╔╝██║  ██║██║  ██║██║ ╚████║██║██║ ╚████║╚██████╔╝                      ║
+ ║  [!]  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝                       ║
+ ║                                                                                      ║
+ ║                                                                                      ║
+ ║  /!\ THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM.                  ║
+ ║  /!\ THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM.                  ║
+ ║  /!\ THERE IS NO RECOVERY OPTION AFTER COMPLETION.                                   ║
+ ║  /!\ DATA WILL BE CRYPTOGRAPHICALLY ERASED USING SECURE KEY ELIMINATION.             ║
+ ║                                                                                      ║
+ ║                                                                                      ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Write-Output "====================================================================="
-Write-Output "          BitLocker Crypto-Erase Script Starting                     "
-Write-Output "====================================================================="
-
-Write-Output "====================================================================="
-Write-Output "          WARNING: SECURE DATA ERASURE                               "
-Write-Output "====================================================================="
-
-# Critical warning displayed to user about data destruction
-Write-Output "THIS PROCESS WILL PERMANENTLY DESTROY ALL DATA ON THIS SYSTEM."
-Write-Output "THERE IS NO RECOVERY OPTION AFTER COMPLETION."
+"@ -ForegroundColor White
 
 #====================================================================================
 # EXTERNAL DRIVE IDENTIFICATION
 #====================================================================================
 
-# List all available drives for user reference
-Write-Output "`n====================================================================="
-Write-Output "          DRIVE INFORMATION                                          "
-Write-Output "====================================================================="
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [+] VOLUME SCANNER                                                                  ║
+ ║  [+] ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐  ┌───┐       SCANNING DRIVES...               ║
+ ║  [+] │   │  │   │  │   │  │   │  │   │  │   │  ◄►   IDENTIFYING VOLUMES...           ║
+ ║  [+] └───┘  └───┘  └───┘  └───┘  └───┘  └───┘       ANALYZING MOUNT POINTS...        ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
+# List all available drives for user reference
 # Get and display all available drives with their information
 $allDrives = Get-Volume | Where-Object { $_.DriveLetter } | Select-Object DriveLetter, FileSystemLabel, DriveType, SizeRemaining, Size
 Write-Output "Available drives on this system:"
@@ -106,6 +130,16 @@ if ($confirmExclusions.ToUpper() -ne "Y") {
 #====================================================================================
 # DOMAIN DISCONNECTION VERIFICATION FUNCTION
 #====================================================================================
+
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [*] DOMAIN VERIFICATION                                                             ║
+ ║  [*]   ┌──────────┐                                                                  ║
+ ║  [*]   │ COMPUTER │______╳_______► DOMAIN CONTROLLER                                 ║
+ ║  [*]   └──────────┘                                                                  ║
+ ║  [*]       ▲                    CONNECTION CHECK IN PROGRESS...                      ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
 # Function to ensure the computer has been disconnected from domain before proceeding
 # This prevents potential issues with domain policies interfering with the erase process
@@ -144,9 +178,15 @@ function Confirm-DomainDisconnect {
 #====================================================================================
 
 function Process-UnallocatedSpace {
-    Write-Output "`n====================================================================="
-    Write-Output "          DETECTING AND FORMATTING UNALLOCATED SPACE                 "
-    Write-Output "====================================================================="
+    Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [▓] UNALLOCATED SPACE PROCESSOR                                                     ║
+ ║  [▓] ╔═══════════════════════════════════════╗                                       ║
+ ║  [▓] ║ ░░░░░░░░░░░░ ░░░░░░░ ░░░░░░░░░░░░░░░  ║ <-- ANALYZING DISK STRUCTURE          ║
+ ║  [▓] ║ ░░░░░░░░░░ FINDING HIDDEN PARTITIONS ░║ <-- IDENTIFYING RAW VOLUMES           ║
+ ║  [▓] ╚═══════════════════════════════════════╝                                       ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
     # Log the excluded drive list for debugging
     if ($excludeDrives.Count -gt 0) {
@@ -484,6 +524,19 @@ Confirm-DomainDisconnect
 # Process unallocated space before proceeding with BitLocker operations
 Process-UnallocatedSpace
 
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [!] CRITICAL CHECKPOINT                                                             ║
+ ║  [!]                                                                                 ║
+ ║  [!]  ██████╗ ██████╗ ███╗   ██╗███████╗██╗██████╗ ███╗   ███╗                       ║
+ ║  [!] ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔══██╗████╗ ████║                       ║
+ ║  [!] ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██████╔╝██╔████╔██║                       ║
+ ║  [!] ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██╔══██╗██║╚██╔╝██║                       ║
+ ║  [!] ╚██████╗╚██████╔╝██║ ╚████║██║     ██║██║  ██║██║ ╚═╝ ██║                       ║
+ ║  [!]  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝                       ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
+
 # Require explicit confirmation by typing "ERASE ALL DATA" to prevent accidental execution
 $confirmation = Read-Host "Type 'ERASE ALL DATA' (all caps) to confirm and continue"
 if ($confirmation -ne "ERASE ALL DATA") {
@@ -496,9 +549,16 @@ if ($confirmation -ne "ERASE ALL DATA") {
 #====================================================================================
 
 # Provide detailed instructions for manual BitLocker activation before automated process
-Write-Output "====================================================================="
-Write-Output "          Manual BitLocker Activation Instruction                    "
-Write-Output "====================================================================="
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [#] BITLOCKER ACTIVATION                                                            ║
+ ║  [#]                                                                                 ║
+ ║  [#]  ┌─────────────────────┐   ENCRYPTION STATUS                                    ║
+ ║  [#]  │ ╔═╗ BITLOCKER ╔═╗   │   █████████████████░░░░░░░░░░░                         ║
+ ║  [#]  │ ╚═╝ PROTECTED ╚═╝   │   PREPARING VOLUMES...                                 ║
+ ║  [#]  └─────────────────────┘                                                        ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
 Write-Output "Before proceeding, please ensure BitLocker is activated manually as follows:"
 Write-Output "1. Open the Start menu and type 'BitLocker'."
@@ -513,6 +573,17 @@ Read-Host
 # TPM VERIFICATION
 #====================================================================================
 
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [>] TPM SECURITY MODULE CHECK                                                       ║
+ ║  [>]  ┌───────────────────────────┐                                                  ║
+ ║  [>]  │ ┌─────┐    TRUSTED        │  VERIFYING TPM INTEGRITY...                      ║
+ ║  [>]  │ │ TPM │    PLATFORM       │  CHECKING TPM OWNERSHIP...                       ║
+ ║  [>]  │ └─────┘    MODULE         │  VALIDATING TPM ACTIVATION...                    ║
+ ║  [>]  └───────────────────────────┘                                                  ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor Yellow
+
 # Verify the TPM chip is present and properly configured before proceeding
 # TPM is essential for secure key storage during BitLocker operations
 $tpm = Get-Tpm
@@ -525,6 +596,16 @@ Write-Output "TPM is present, enabled, activated, owned, and ready."
 #====================================================================================
 # MAIN VOLUME PROCESSING LOOP
 #====================================================================================
+
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [*] CRYPTOGRAPHIC ERASE                                                             ║
+ ║  [*]                                                                                 ║
+ ║  [*]  KEY STATUS:    [ GENERATING NEW KEYS ][ PREPARING PROTECTORS ]                 ║
+ ║  [*]  VOLUME STATUS: [ PROCESSING VOLUMES ][ WIPING SECURITY TOKENS ]                ║
+ ║  [*]                                                                                 ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
 # Get all fixed internal volumes (excluding specified drives and volumes without a mount point)
 $volumes = Get-BitLockerVolume | Where-Object {
@@ -689,9 +770,15 @@ foreach ($vol in $volumes) {
 # SYSTEM CLEANUP AND FINALIZATION
 #====================================================================================
 
-Write-Output "====================================================================="
-Write-Output "          Wrapping things up                                         "
-Write-Output "====================================================================="
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [✓] FINAL SECURITY OPERATIONS                                                       ║
+ ║  [✓]                                                                                 ║
+ ║  [✓]  ┌───────────┐   ┌────────────┐     FAST STARTUP: [ DISABLING... ]              ║
+ ║  [✓]  │ TPM CLEAR │ → │ DEEP PURGE │     TPM CLEARANCE: [ PROCESSING... ]            ║
+ ║  [✓]  └───────────┘   └────────────┘     PREPARING Reboot : [ INITIALIZING... ]      ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
 
 # Disable Windows Fast Startup to ensure a full shutdown/cold boot
 # This prevents cached credentials from potentially remaining in memory
@@ -711,16 +798,27 @@ catch {
 
 Write-Output "`nAll internal drives processed. The system will reboot now to complete the purge."
 
+Write-Host @"
+ ╔══════════════════════════════════════════════════════════════════════════════════════╗
+ ║  [!] SYSTEM REBOOT REQUIRED                                                          ║
+ ║  [!]                                                                                 ║
+ ║  [!]  ┌─────────────────────────┐  CRYPTOGRAPHIC ERASE COMPLETE                      ║
+ ║  [!]  │ ██████  REBOOT    ██████│  → DATA IS NOW IRRECOVERABLE                       ║
+ ║  [!]  └─────────────────────────┘  → COLD BOOT REQUIRED AFTER REBOOT                 ║
+ ║  [!]                                                                                 ║
+ ╚══════════════════════════════════════════════════════════════════════════════════════╝
+"@ -ForegroundColor White
+
 #====================================================================================
 # REBOOT COUNTDOWN AND EXECUTION
 #====================================================================================
 
-# Countdown before forcing system reboot to complete the process.
+# Countdown before forcing system reboot to complete the process
 Write-Host "System will reboot in $countdownSeconds seconds..." -ForegroundColor Yellow
 for ($i = $countdownSeconds; $i -gt 0; $i--) {
     Write-Host "`rRebooting in $i seconds..." -NoNewline
     Start-Sleep -Seconds 1
 }
 
-# Force system reboot to apply all changes.
+# Force system reboot to apply all changes
 Restart-Computer -Force

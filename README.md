@@ -71,7 +71,7 @@ This utility is ideal for IT administrators, cybersecurity professionals, and or
 
 ---
 
-## 🖼 Screenshot
+## 🖼 The utility in action
 
 ![image](https://github.com/user-attachments/assets/ec6e8a54-42e5-47a8-8380-fd257f3d8c03)
 

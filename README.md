@@ -5,6 +5,7 @@
 > **License**: [MIT License](./LICENSE)  
 > **GitHub**: [github.com/cyberkareem](https://github.com/cyberkareem)  
 > **Compliance**: NIST SP 800-88 Rev. 1 – Purge-Level Sanitization
+> 
 > **Blog Post:** [Introducing the BitLocker Cryptographic Erase Utility – Secure Data Destruction Made Simple](https://medium.com/@cyberkareem/introducing-the-bitlocker-cryptographic-erase-utility-secure-data-destruction-made-simple-1955b830e1aa)
 
 ---

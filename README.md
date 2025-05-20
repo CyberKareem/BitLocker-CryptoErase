@@ -119,7 +119,7 @@ Instead of overwriting every byte of data (which is time-consuming and SSD-unfri
 1. **Encrypting all content using strong AES-256 encryption via BitLocker.**
 2. **Removing all known key protectors** (e.g. TPM, recovery key, password).
 3. **Replacing them with a newly generated recovery key** that is **not backed up or saved**.
-4. The new key is then **immediately forgotten**—making all data mathematically irretrievable.
+4. The new key is then **immediately forgotten** making all data mathematically irretrievable.
 
 This method is endorsed by NIST as a secure, efficient alternative to traditional wipe methods, especially for encrypted media.
 

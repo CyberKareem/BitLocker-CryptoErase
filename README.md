@@ -25,7 +25,7 @@ This utility is ideal for IT administrators, cybersecurity professionals, and or
 - 🔍 **Unallocated Space Sanitization**: Detects, partitions, and encrypts unallocated regions on each drive to ensure no data remnants are missed.
 - 🛡 **TPM Verification**: Confirms Trusted Platform Module (TPM) is present, activated, and ready before proceeding.
 - 🧠 **Multi-Layered Confirmation Flow**: Prevents accidental execution with explicit user prompts, domain-disconnect verification, and mandatory manual confirmation.
-- 🔄 **BitLocker Integration**: Enables encryption (if not active), monitors progress, handles suspended states, and removes known protectors.
+- 🔄 **BitLocker Integration**: It gives you the lead to enforce enabling Bitlocker manually and then ensures that it is enbaled, monitors progress, handles suspended states, and removes known protectors.
 - 🔧 **Final Cleanup**: Disables Fast Startup, clears TPM, and enforces cold reboot to eliminate residuals from memory or cached credentials.
 - 🛠 **Portable USB Support (in progress)**: Future versions will allow execution from bootable Linux or WinPE USB to support offline sanitization.
 

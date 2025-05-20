@@ -11,7 +11,7 @@
 
 ## ⚠️ Purpose
 
-The **BitLocker Cryptographic Erase Utility** is a PowerShell-based solution that performs **irreversible data sanitization** on internal drives using native BitLocker encryption. It ensures **compliance with the "Purge" level requirements** defined by the **NIST Special Publication 800-88 Revision 1**—the gold standard for secure media sanitization in both government and enterprise environments.
+The **BitLocker Cryptographic Erase Utility** is a PowerShell-based solution that performs **irreversible data sanitization** on internal drives using native BitLocker encryption. It ensures **compliance with the "Purge" level requirements** defined by the **NIST Special Publication 800-88 Revision 1** the gold standard for secure media sanitization in both government and enterprise environments.
 
 This utility is ideal for IT administrators, cybersecurity professionals, and organizations that need to securely wipe data from systems prior to repurposing, decommissioning, or asset disposal.
 

@@ -27,7 +27,6 @@ This utility is ideal for IT administrators, cybersecurity professionals, and or
 - 🧠 **Multi-Layered Confirmation Flow**: Prevents accidental execution with explicit user prompts, domain-disconnect verification, and mandatory manual confirmation.
 - 🔄 **BitLocker Integration**: It gives you the lead to enforce enabling Bitlocker manually and then ensures that it is enbaled, monitors progress, handles suspended states, and removes known protectors.
 - 🔧 **Final Cleanup**: Disables Fast Startup, clears TPM, and enforces cold reboot to eliminate residuals from memory or cached credentials.
-- 🛠 **Portable USB Support (in progress)**: Future versions will allow execution from bootable Linux or WinPE USB to support offline sanitization.
 
 ---
 

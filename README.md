@@ -156,7 +156,7 @@ For contributions, inquiries, or improvements:
 ## 🙏 Acknowledgements
 
 Inspired by community best practices, NIST publications, and real-world enterprise security needs.  
-Special thanks to contributors in the InfoSec and PowerShell ecosystems.
+Special thanks to contributors in the InfoSec, Microsoft BitLocker Documentation and PowerShell ecosystems.
 
 ---
 

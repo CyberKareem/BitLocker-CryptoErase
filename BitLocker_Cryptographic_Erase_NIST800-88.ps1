@@ -21,9 +21,9 @@
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
-    * Requires TPM 1.2+ and BitLocker capability
-    * Must perform COLD shutdown after execution
-    * For use only on systems being decommissioned or repurposed
+    * Requires TPM 1.2+ and BitLocker capability.
+    * Must perform COLD shutdown after execution.
+    * For use only on systems being decommissioned or repurposed.
 
 .EXAMPLE
     Set-ExecutionPolicy Bypass -Scope Process -Force

@@ -1,6 +1,6 @@
 # BitLocker Cryptographic Erase Script for NIST 800-88 rev.1 Compliance
 # This script performs a cryptographic erase on all internal drives using BitLocker,
-# ensuring data is permanently deleted and unrecoverable
+# ensuring data is permanently deleted and unrecoverable.
 # Requires -RunAsAdministrator
 
 <#
@@ -21,8 +21,8 @@
     Creation Date:  April 25, 2025
     
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
-    * Requires TPM 1.2+ and BitLocker capability
-    * Must perform COLD shutdown after execution
+    * Requires TPM 1.2+ and BitLocker capability.
+    * Must perform COLD shutdown after execution.
     * For use only on systems being decommissioned or repurposed.
 
 .EXAMPLE

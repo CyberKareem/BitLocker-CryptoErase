@@ -11,7 +11,7 @@
     This script performs a cryptographic erase on all internal drives using BitLocker,
     ensuring data is permanently deleted and unrecoverable in accordance with
     NIST Special Publication 800-88 Revision 1 guidelines
-    It ncludes handling of unallocated spaces to ensure complete drive erasure
+    It ncludes handling of unallocated spaces to ensure complete drive erasure.
 
 .NOTES
     Version:        1.2
@@ -23,7 +23,7 @@
     WARNING: THIS WILL MAKE DATA IRRECOVERABLE
     * Requires TPM 1.2+ and BitLocker capability.
     * Must perform COLD shutdown after execution.
-    * For use only on systems being decommissioned or repurposed
+    * For use only on systems being decommissioned or repurposed.
 
 .EXAMPLE
     Set-ExecutionPolicy Bypass -Scope Process -Force

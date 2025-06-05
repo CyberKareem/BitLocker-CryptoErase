@@ -143,13 +143,13 @@ You may use, modify, and distribute it freely with proper attribution.
 
 ---
 
-## ✉️ Contact
+## 📧 Contact & Support
 
-For contributions, inquiries, or improvements:
-
-- 📧 abdullahalikareem@gmail.com  
-- 🌐 https://linktr.ee/cyberkareem  
-- 🔗 https://github.com/cyberkareem
+- **Author**: Abdullah Kareem
+- **X**: [DM me on X](https://x.com/CyberKareem)
+- **LinkedIn**: [Connect on LinkedIn](https://linktr.ee/cyberkareem)
+- **Issues**: [GitHub Issues](https://github.com/CyberKareem/BitLocker-CryptoErase/issues)
+- If this tool helps you, please consider starring the repository!
 
 ---
 
@@ -160,10 +160,5 @@ Special thanks to contributors in the InfoSec, Microsoft BitLocker Documentation
 
 ---
 
-## 🤝 Contributing
-
-Your contributions are welcome! You can:  
-- Submit feature ideas or bug reports via GitHub Issues  
-- Fork the repo and create a pull request
 
   <a href="https://www.buymeacoffee.com/cyberkareem" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

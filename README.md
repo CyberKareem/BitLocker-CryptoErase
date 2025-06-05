@@ -164,4 +164,6 @@ Special thanks to contributors in the InfoSec, Microsoft BitLocker Documentation
 
 Your contributions are welcome! You can:  
 - Submit feature ideas or bug reports via GitHub Issues  
-- Fork the repo and create a pull request  
+- Fork the repo and create a pull request
+
+  <a href="https://www.buymeacoffee.com/cyberkareem" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
